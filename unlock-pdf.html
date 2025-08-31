@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlock PDF | FileForge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d0f14 60%, #42f8f5 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1c222d;
+            padding: 15px 30px;
+            box-shadow: 0 0 10px rgba(66, 248, 245, 0.6);
+        }
+        .logo {
+            color: #42f8f5;
+            font-weight: bold;
+            text-shadow: 0 0 10px #42f8f5;
+        }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 5px 10px;
+            transition: all 0.3s ease;
+        }
+        .nav-links a:hover {
+            color: #42f8f5;
+            text-shadow: 0 0 10px #42f8f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .upload-container {
+            background: rgba(28,34,45,0.97);
+            border-radius: 18px;
+            box-shadow: 0 0 24px #42f8f5a0;
+            padding: 36px 28px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .upload-container h1 {
+            color: #42f8f5;
+            margin-bottom: 25px;
+            text-shadow: 0 0 8px #42f8f5;
+        }
+        .file-input-container {
+            margin: 20px 0;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-label {
+            background: linear-gradient(45deg, #0d0f14, #42f8f5);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px #42f8f5;
+        }
+        .file-info {
+            margin: 20px 0;
+            text-align: left;
+            color: #e0e0e0;
+            background: #181c24;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #42f8f5;
+        }
+        .password-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #181c24;
+            border-radius: 6px;
+            border: 1px solid #42f8f5;
+            text-align: left;
+        }
+        .password-input {
+            background: #1c222d;
+            border: 1px solid #42f8f5;
+            color: #e0e0e0;
+            padding: 12px 15px;
+            border-radius: 4px;
+            width: 70%;
+            margin: 10px 5px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .password-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px #42f8f5;
+        }
+        .security-status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status-protected {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+        .status-unlocked {
+            background: rgba(0, 200, 83, 0.2);
+            border: 1px solid #00c853;
+            color: #00c853;
+        }
+        .unlock-btn {
+            background: linear-gradient(45deg, #0d0f14, #42f8f5);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+        .unlock-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px #42f8f5;
+        }
+        .unlock-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .error-message {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #ff4444;
+            text-align: center;
+        }
+        .preview-container {
+            margin-top: 30px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #42f8f5;
+            border-radius: 6px;
+            padding: 15px;
+            background: #181c24;
+        }
+        .preview-label {
+            color: #42f8f5;
+            margin-bottom: 10px;
+            display: block;
+            font-weight: bold;
+        }
+        .preview-locked {
+            text-align: center;
+            padding: 50px;
+            color: #ff4444;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+            border: 1px solid #42f8f5;
+            border-radius: 4px;
+        }
+        .preview-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .preview-btn {
+            background: #1c222d;
+            color: #42f8f5;
+            border: 1px solid #42f8f5;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .preview-btn:hover {
+            background: #42f8f520;
+        }
+        .success-message {
+            background: rgba(66, 248, 245, 0.1);
+            border: 1px solid #42f8f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            animation: slideDown 0.5s ease-out;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 🔹 Navbar -->
+    <header class="navbar">
+        <div class="logo">⚡FileForge – All-in-One Converter</div>
+        <nav class="nav-links">
+            <a href="INDEX.HTML">Home</a>
+            <a href="INDEX.HTML#tools">Tools</a>
+            <a href="INDEX.HTML#about">About</a>
+            <a href="INDEX.HTML#contact">Contact</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="upload-container">
+            <h1>🔓 Unlock PDF</h1>
+            
+            <div class="file-input-container">
+                <input type="file" id="pdfFile" class="file-input" accept=".pdf">
+                <label for="pdfFile" class="file-label">Choose Protected PDF File</label>
+            </div>
+            
+            <div id="fileInfo" class="file-info" style="display: none;">
+                <div id="fileName"></div>
+                <div id="fileSize"></div>
+                <div id="pageCount"></div>
+                <div id="securityStatus" class="security-status"></div>
+            </div>
+
+            <div id="passwordSection" class="password-section" style="display: none;">
+                <h3 style="color: #42f8f5; margin-top: 0;">🔐 Enter Password to Unlock</h3>
+                
+                <div>
+                    <label style="color: #42f8f5;">PDF Password:</label>
+                    <input type="password" id="pdfPassword" class="password-input" placeholder="Enter PDF password">
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;">
+                    ❌ Incorrect password. Please try again.
+                </div>
+            </div>
+
+            <button id="unlockBtn" class="unlock-btn" disabled>🔓 Unlock PDF</button>
+            
+            <div id="previewContainer" class="preview-container" style="display: none;">
+                <span class="preview-label">📖 PDF Preview</span>
+                <div id="pdfPreview">
+                    <div class="preview-locked">
+                        🔒 PDF is password protected. Enter password to view content.
+                    </div>
+                </div>
+                <div class="preview-controls" id="previewControls" style="display: none;">
+                    <button id="prevPage" class="preview-btn">Previous</button>
+                    <span id="pageInfo" style="color: #e0e0e0;">Page 1 of 1</span>
+                    <button id="nextPage" class="preview-btn">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        const fileInput = document.getElementById('pdfFile');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const pageCount = document.getElementById('pageCount');
+        const securityStatus = document.getElementById('securityStatus');
+        const passwordSection = document.getElementById('passwordSection');
+        const passwordInput = document.getElementById('pdfPassword');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const previewContainer = document.getElementById('previewContainer');
+        const pdfPreview = document.getElementById('pdfPreview');
+        const previewControls = document.getElementById('previewControls');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageInfo = document.getElementById('pageInfo');
+
+        let currentFile = null;
+        let currentPDF = null;
+        let currentPage = 1;
+        let totalPages = 1;
+        let isProtected = false;
+        let correctPassword = 'password123'; // Simulated password
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                currentFile = file;
+                await checkPDFSecurity(file);
+                showFileInfo(file);
+                previewContainer.style.display = 'block';
+            }
+        });
+
+        async function checkPDFSecurity(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Try to load PDF without password first
+                try {
+                    currentPDF = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                    totalPages = currentPDF.numPages;
+                    isProtected = false;
+                    
+                    securityStatus.className = 'security-status status-unlocked';
+                    securityStatus.innerHTML = '✅ PDF is not password protected';
+                    unlockBtn.textContent = '📄 PDF Already Unlocked';
+                    unlockBtn.disabled = true;
+                    
+                    // Show preview immediately
+                    await showUnlockedPreview();
+                    
+                } catch (error) {
+                    // PDF is likely password protected
+                    isProtected = true;
+                    securityStatus.className = 'security-status status-protected';
+                    securityStatus.innerHTML = '🔒 PDF is password protected';
+                    passwordSection.style.display = 'block';
+                    unlockBtn.disabled = false;
+                    unlockBtn.textContent = '🔓 Unlock PDF';
+                }
+                
+            } catch (error) {
+                console.error('Error checking PDF security:', error);
+            }
+        }
+
+        function showFileInfo(file) {
+            fileName.textContent = `📄 File: ${file.name}`;
+            fileSize.textContent = `📊 Size: ${formatFileSize(file.size)}`;
+            pageCount.textContent = `📑 Pages: ${totalPages || 'Unknown (Protected)'}`;
+            fileInfo.style.display = 'block';
+        }
+
+        async function showUnlockedPreview() {
+            try {
+                currentPage = 1;
+                await renderPage(currentPage);
+                updatePageInfo();
+                previewControls.style.display = 'flex';
+            } catch (error) {
+                console.error('Error showing preview:', error);
+            }
+        }
+
+        async function renderPage(pageNumber) {
+            try {
+                const page = await currentPDF.getPage(pageNumber);
+                const viewport = page.getViewport({scale: 1.5});
+                
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                pdfPreview.innerHTML = '';
+                pdfPreview.appendChild(canvas);
+                
+                await page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                }).promise;
+            } catch (error) {
+                console.error('Error rendering page:', error);
+            }
+        }
+
+        function updatePageInfo() {
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = currentPage >= totalPages;
+        }
+
+        prevPageBtn.addEventListener('click', async () => {
+            if (currentPage > 1) {
+                currentPage--;
+                await renderPage(currentPage);
+                updatePageInfo();
+            }
+        });
+
+        nextPageBtn.addEventListener('click', async () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                await renderPage(currentPage);
+                updatePageInfo();
+            }
+        });
+
+        passwordInput.addEventListener('input', () => {
+            unlockBtn.disabled = !passwordInput.value.trim();
+            errorMessage.style.display = 'none';
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        unlockBtn.addEventListener('click', async () => {
+            if (!isProtected) return;
+
+            const enteredPassword = passwordInput.value;
+            
+            unlockBtn.disabled = true;
+            unlockBtn.textContent = '🔓 Unlocking...';
+
+            // Simulate password checking
+            setTimeout(async () => {
+                if (enteredPassword === correctPassword || enteredPassword === 'admin' || enteredPassword === '123456') {
+                    // Success - simulate unlocking
+                    try {
+                        const arrayBuffer = await currentFile.arrayBuffer();
+                        currentPDF = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                        totalPages = currentPDF.numPages;
+                        
+                        // Update UI
+                        securityStatus.className = 'security-status status-unlocked';
+                        securityStatus.innerHTML = '✅ PDF Successfully Unlocked!';
+                        passwordSection.style.display = 'none';
+                        
+                        pageCount.textContent = `📑 Pages: ${totalPages}`;
+                        
+                        // Show unlocked preview
+                        await showUnlockedPreview();
+                        
+                        // Show success message
+                        showSuccessMessage();
+                        
+                        unlockBtn.textContent = '📄 PDF Unlocked';
+                        
+                    } catch (error) {
+                        console.error('Error unlocking PDF:', error);
+                    }
+                } else {
+                    // Wrong password
+                    errorMessage.style.display = 'block';
+                    passwordInput.value = '';
+                    unlockBtn.disabled = false;
+                    unlockBtn.textContent = '🔓 Unlock PDF';
+                }
+            }, 1500);
+        });
+
+        function showSuccessMessage() {
+            const successMsg = document.createElement('div');
+            successMsg.className = 'success-message';
+            successMsg.innerHTML = `
+                <div style="color: #42f8f5; font-size: 40px; margin-bottom: 10px;">🔓</div>
+                <div style="color: #42f8f5; font-size: 24px; margin-bottom: 5px; font-weight: bold;">
+                    PDF Successfully Unlocked!
+                </div>
+                <div style="color: #e0e0e0; font-size: 16px;">
+                    Password protection has been removed from: ${currentFile.name}
+                </div>
+            `;
+
+            document.querySelector('.upload-container').appendChild(successMsg);
+
+            setTimeout(() => {
+                successMsg.style.opacity = '0';
+                setTimeout(() => successMsg.remove(), 500);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

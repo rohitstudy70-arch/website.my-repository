@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Converter - FileForge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .converter-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #12151a;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(66, 248, 245, 0.3);
+            width: 90%;
+        }
+
+        .drop-zone {
+            padding: 40px;
+            margin: 20px 0;
+            border: 2px dashed #42f8f5;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone:hover {
+            background: rgba(66, 248, 245, 0.05);
+            border-color: #42f8f5;
+            box-shadow: 0 0 15px rgba(66, 248, 245, 0.2);
+        }
+
+        .drop-zone.dragover {
+            background: rgba(66, 248, 245, 0.1);
+            border-color: #42f8f5;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .preview-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(66, 248, 245, 0.05);
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 2px solid #42f8f5;
+            box-shadow: 0 0 15px rgba(66, 248, 245, 0.2);
+        }
+
+        .format-select {
+            background: #1c222d;
+            border: 1px solid #42f8f5;
+            color: #e0e0e0;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-family: 'Orbitron', sans-serif;
+            margin: 10px;
+            min-width: 150px;
+        }
+
+        .quality-slider {
+            width: 200px;
+            margin: 20px;
+            accent-color: #42f8f5;
+        }
+
+        .action-btn {
+            background: transparent;
+            color: #42f8f5;
+            border: 2px solid #42f8f5;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .action-btn:hover {
+            background: #42f8f5;
+            color: #12151a;
+            box-shadow: 0 0 15px rgba(66, 248, 245, 0.5);
+        }
+
+        .format-info {
+            color: #e0e0e0;
+            margin: 20px 0;
+            font-size: 0.9em;
+        }
+
+        .quality-value {
+            color: #42f8f5;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- 🔹 Navbar -->
+    <header class="navbar">
+        <div class="logo">⚡FileForge – All-in-One Converter</div>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#tools">Tools</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#contact">Contact</a>
+        </nav>
+        <div class="hamburger">☰</div>
+    </header>
+
+    <div class="converter-container">
+        <h1 style="color: #42f8f5; text-align: center; margin-bottom: 30px;">Image Converter</h1>
+        
+        <div class="drop-zone" id="dropZone">
+            <p>Drag & Drop your image here</p>
+            <p>or</p>
+            <button class="action-btn" onclick="document.getElementById('fileInput').click()">Choose Image</button>
+            <input type="file" id="fileInput" class="file-input" accept="image/*">
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+            <img id="previewImage" class="preview-image">
+            
+            <div>
+                <select id="formatSelect" class="format-select">
+                    <option value="jpeg">JPEG</option>
+                    <option value="png">PNG</option>
+                    <option value="webp">WEBP</option>
+                    <option value="gif">GIF</option>
+                </select>
+            </div>
+
+            <div class="format-info">
+                <p>Quality: <span id="qualityValue" class="quality-value">90</span>%</p>
+                <input type="range" id="qualitySlider" class="quality-slider" min="1" max="100" value="90">
+            </div>
+
+            <button class="action-btn" id="convertBtn">Convert & Download</button>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const formatSelect = document.getElementById('formatSelect');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        const convertBtn = document.getElementById('convertBtn');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop zone when file is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Handle dropped files
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFiles, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles({ target: { files: files } });
+        }
+
+        function handleFiles(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        qualitySlider.addEventListener('input', function() {
+            qualityValue.textContent = this.value;
+        });
+
+        convertBtn.addEventListener('click', function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to match image
+            canvas.width = previewImage.naturalWidth;
+            canvas.height = previewImage.naturalHeight;
+            
+            // Draw image to canvas
+            ctx.drawImage(previewImage, 0, 0);
+            
+            // Convert to desired format
+            const format = formatSelect.value;
+            const quality = qualitySlider.value / 100;
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `converted-image.${format}`;
+            link.href = canvas.toDataURL(`image/${format}`, quality);
+            link.click();
+        });
+    </script>
+</body>
+</html>

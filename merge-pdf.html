@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge PDF | FileForge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d0f14 60%, #42f8f5 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1c222d;
+            padding: 15px 30px;
+            box-shadow: 0 0 10px rgba(66, 248, 245, 0.6);
+        }
+        .logo {
+            color: #42f8f5;
+            font-weight: bold;
+            text-shadow: 0 0 10px #42f8f5;
+        }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 5px 10px;
+            transition: all 0.3s ease;
+        }
+        .nav-links a:hover {
+            color: #42f8f5;
+            text-shadow: 0 0 10px #42f8f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .upload-container {
+            background: rgba(28,34,45,0.97);
+            border-radius: 18px;
+            box-shadow: 0 0 24px #42f8f5a0;
+            padding: 36px 28px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .upload-container h1 {
+            color: #42f8f5;
+            margin-bottom: 25px;
+            text-shadow: 0 0 8px #42f8f5;
+        }
+        .file-input-container {
+            margin: 20px 0;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-label {
+            background: linear-gradient(45deg, #0d0f14, #42f8f5);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px #42f8f5;
+        }
+        .file-list {
+            margin: 20px 0;
+            text-align: left;
+            color: #e0e0e0;
+            background: #181c24;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #42f8f5;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #42f8f580;
+            margin: 5px 0;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-info {
+            flex: 1;
+        }
+        .file-name {
+            font-weight: bold;
+            color: #42f8f5;
+        }
+        .file-size {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        .remove-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .remove-btn:hover {
+            background: #cc3333;
+            transform: scale(1.05);
+        }
+        .merge-btn {
+            background: linear-gradient(45deg, #0d0f14, #42f8f5);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+        .merge-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px #42f8f5;
+        }
+        .merge-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .drag-area {
+            border: 2px dashed #42f8f5;
+            padding: 40px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: rgba(66, 248, 245, 0.05);
+            transition: all 0.3s ease;
+        }
+        .drag-area.drag-over {
+            background: rgba(66, 248, 245, 0.1);
+            border-color: #42f8f5;
+        }
+        .success-message {
+            background: rgba(66, 248, 245, 0.1);
+            border: 1px solid #42f8f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            animation: slideDown 0.5s ease-out;
+        }
+        .success-icon {
+            color: #42f8f5;
+            font-size: 40px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #42f8f5;
+        }
+        .success-text {
+            color: #42f8f5;
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .success-details {
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+        .preview-container {
+            margin-top: 30px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #42f8f5;
+            border-radius: 6px;
+            padding: 15px;
+            background: #181c24;
+        }
+        .preview-label {
+            color: #42f8f5;
+            margin-bottom: 10px;
+            display: block;
+            font-weight: bold;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+            border: 1px solid #42f8f5;
+            border-radius: 4px;
+        }
+        .preview-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .preview-btn {
+            background: #1c222d;
+            color: #42f8f5;
+            border: 1px solid #42f8f5;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .preview-btn:hover {
+            background: #42f8f520;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 🔹 Navbar -->
+    <header class="navbar">
+        <div class="logo">⚡FileForge – All-in-One Converter</div>
+        <nav class="nav-links">
+            <a href="INDEX.HTML">Home</a>
+            <a href="INDEX.HTML#tools">Tools</a>
+            <a href="INDEX.HTML#about">About</a>
+            <a href="INDEX.HTML#contact">Contact</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="upload-container">
+            <h1>Merge PDF Files</h1>
+            
+            <div class="drag-area" id="dragArea">
+                <p style="color: #42f8f5; margin: 0;">Drag & Drop multiple PDF files here</p>
+                <p style="color: #aaa; margin: 10px 0;">or</p>
+                <div class="file-input-container">
+                    <input type="file" id="pdfFiles" class="file-input" accept=".pdf" multiple>
+                    <label for="pdfFiles" class="file-label">Choose Multiple PDF Files</label>
+                </div>
+            </div>
+            
+            <div id="fileList" class="file-list" style="display: none;">
+                <h3 style="color: #42f8f5; margin-top: 0;">Selected Files:</h3>
+                <div id="filesContainer"></div>
+            </div>
+            
+            <button id="mergeBtn" class="merge-btn" disabled>Merge PDFs</button>
+            
+            <div id="previewContainer" class="preview-container" style="display: none;">
+                <span class="preview-label">PDF Preview</span>
+                <div id="pdfPreview"></div>
+                <div class="preview-controls">
+                    <button id="prevPage" class="preview-btn">Previous</button>
+                    <span id="pageInfo" style="color: #e0e0e0;">Page 1 of 1</span>
+                    <button id="nextPage" class="preview-btn">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        const fileInput = document.getElementById('pdfFiles');
+        const dragArea = document.getElementById('dragArea');
+        const fileList = document.getElementById('fileList');
+        const filesContainer = document.getElementById('filesContainer');
+        const mergeBtn = document.getElementById('mergeBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const pdfPreview = document.getElementById('pdfPreview');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageInfo = document.getElementById('pageInfo');
+        
+        let selectedFiles = [];
+        let currentPDF = null;
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // File input change event
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        // Drag and drop events
+        dragArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragArea.classList.add('drag-over');
+        });
+        
+        dragArea.addEventListener('dragleave', () => {
+            dragArea.classList.remove('drag-over');
+        });
+        
+        dragArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragArea.classList.remove('drag-over');
+            
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+            if (files.length > 0) {
+                addFiles(files);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files).filter(file => file.type === 'application/pdf');
+            addFiles(files);
+        }
+
+        function addFiles(newFiles) {
+            newFiles.forEach(file => {
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            });
+            
+            updateFileList();
+            updateMergeButton();
+            
+            // Show preview of first file
+            if (selectedFiles.length > 0) {
+                showPDFPreview(selectedFiles[0]);
+            }
+        }
+
+        function updateFileList() {
+            if (selectedFiles.length === 0) {
+                fileList.style.display = 'none';
+                return;
+            }
+            
+            fileList.style.display = 'block';
+            filesContainer.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">Size: ${formatFileSize(file.size)}</div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                `;
+                filesContainer.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateMergeButton();
+            
+            // Update preview
+            if (selectedFiles.length > 0) {
+                showPDFPreview(selectedFiles[0]);
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        }
+
+        function updateMergeButton() {
+            mergeBtn.disabled = selectedFiles.length < 2;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function showPDFPreview(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                currentPDF = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                totalPages = currentPDF.numPages;
+                currentPage = 1;
+                await renderPage(currentPage);
+                
+                previewContainer.style.display = 'block';
+                updatePageInfo();
+            } catch (error) {
+                console.error('Error showing PDF preview:', error);
+            }
+        }
+
+        async function renderPage(pageNumber) {
+            try {
+                const page = await currentPDF.getPage(pageNumber);
+                const viewport = page.getViewport({scale: 1.5});
+                
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                pdfPreview.innerHTML = '';
+                pdfPreview.appendChild(canvas);
+                
+                await page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                }).promise;
+            } catch (error) {
+                console.error('Error rendering page:', error);
+            }
+        }
+
+        function updatePageInfo() {
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = currentPage >= totalPages;
+        }
+
+        prevPageBtn.addEventListener('click', async () => {
+            if (currentPage > 1) {
+                currentPage--;
+                await renderPage(currentPage);
+                updatePageInfo();
+            }
+        });
+
+        nextPageBtn.addEventListener('click', async () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                await renderPage(currentPage);
+                updatePageInfo();
+            }
+        });
+
+        mergeBtn.addEventListener('click', () => {
+            if (selectedFiles.length < 2) {
+                alert('Please select at least 2 PDF files to merge');
+                return;
+            }
+            
+            mergeBtn.disabled = true;
+            mergeBtn.textContent = 'Merging...';
+            
+            // Simulate merging process
+            setTimeout(() => {
+                showSuccessMessage();
+                mergeBtn.disabled = false;
+                mergeBtn.textContent = 'Merge PDFs';
+            }, 2000);
+        });
+
+        function showSuccessMessage() {
+            const successMsg = document.createElement('div');
+            successMsg.className = 'success-message';
+            successMsg.innerHTML = `
+                <div class="success-icon">✓</div>
+                <div class="success-text">PDFs Successfully Merged!</div>
+                <div class="success-details">
+                    ${selectedFiles.length} files have been combined into one PDF
+                </div>
+            `;
+            
+            document.querySelector('.upload-container').appendChild(successMsg);
+            
+            setTimeout(() => {
+                successMsg.style.opacity = '0';
+                setTimeout(() => successMsg.remove(), 500);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

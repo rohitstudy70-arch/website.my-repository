@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Excel | FileForge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .converter-box {
+            background: rgba(28,34,45,0.97);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 0 24px #42f8f5a0;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #42f8f5;
+            border-radius: 12px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            background: rgba(66,248,245,0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #00c853;
+            background: rgba(66,248,245,0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: #00c853;
+            background: rgba(66,248,245,0.15);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #42f8f5;
+            text-shadow: 0 0 10px #42f8f5;
+        }
+
+        .upload-text {
+            color: #e0e0e0;
+            margin: 10px 0;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .selected-file {
+            background: rgba(66,248,245,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #e0e0e0;
+            margin: 10px 0;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #42f8f5;
+        }
+
+        .file-size {
+            color: #888;
+        }
+
+        .settings-panel {
+            background: rgba(66,248,245,0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .setting-group {
+            margin: 15px 0;
+        }
+
+        .setting-label {
+            color: #42f8f5;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .setting-select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            background: #1c222d;
+            border: 1px solid #42f8f5;
+            color: #e0e0e0;
+            outline: none;
+        }
+
+        .setting-select:focus {
+            border-color: #00c853;
+            box-shadow: 0 0 10px rgba(66,248,245,0.3);
+        }
+
+        .convert-btn {
+            background: linear-gradient(45deg, #0d0f14, #42f8f5);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 0;
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px #42f8f5;
+        }
+
+        .convert-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-area {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #1c222d;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #42f8f5, #00c853);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            color: #42f8f5;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .download-btn {
+            background: linear-gradient(45deg, #00c853, #42f8f5);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+            margin: 20px auto;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px #00c853;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .feature-card {
+            background: rgba(28,34,45,0.97);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #42f8f5;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px #42f8f5;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            color: #42f8f5;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            color: #42f8f5;
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .feature-desc {
+            color: #e0e0e0;
+            font-size: 0.9em;
+        }
+
+        .error-message {
+            color: #ff4444;
+            background: rgba(255,68,68,0.1);
+            border: 1px solid #ff4444;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .converting .upload-icon {
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .success .upload-icon {
+            animation: pulse 1s ease infinite;
+            color: #00c853;
+        }
+
+        .preview-panel {
+            display: none;
+            margin-top: 20px;
+            background: #1c222d;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #e0e0e0;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            border: 1px solid #42f8f5;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .preview-table th {
+            background: rgba(66,248,245,0.1);
+            color: #42f8f5;
+        }
+    </style>
+</head>
+<body>
+    <!-- 🔹 Navbar -->
+    <header class="navbar">
+        <div class="logo">⚡FileForge – All-in-One Converter</div>
+        <nav class="nav-links">
+            <a href="INDEX.HTML">Home</a>
+            <a href="INDEX.HTML#tools">Tools</a>
+            <a href="INDEX.HTML#about">About</a>
+            <a href="INDEX.HTML#contact">Contact</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="converter-box">
+            <h1 style="color: #42f8f5; margin-bottom: 20px;">PDF to Excel Converter</h1>
+            
+            <div class="upload-area" id="dropZone">
+                <div class="upload-icon">📊</div>
+                <div class="upload-text">Drop your PDF file here or click to browse</div>
+                <div class="upload-text" style="font-size: 0.9em; color: #888;">Supports PDF files up to 100MB</div>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf">
+            </div>
+
+            <div class="selected-file" id="fileInfo">
+                <div class="file-info">
+                    <span class="file-name" id="fileName">document.pdf</span>
+                    <span class="file-size" id="fileSize">2.5 MB</span>
+                </div>
+            </div>
+
+            <div class="settings-panel" id="settingsPanel">
+                <div class="setting-group">
+                    <label class="setting-label">Output Format</label>
+                    <select class="setting-select" id="formatSelect">
+                        <option value="xlsx">Excel Workbook (.xlsx)</option>
+                        <option value="xls">Excel 97-2003 (.xls)</option>
+                        <option value="csv">CSV File (.csv)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Table Detection</label>
+                    <select class="setting-select" id="detectionSelect">
+                        <option value="auto">Automatic</option>
+                        <option value="manual">Manual Selection</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Sheet Names</label>
+                    <select class="setting-select" id="sheetSelect">
+                        <option value="pages">Use Page Numbers</option>
+                        <option value="single">Single Sheet</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMsg"></div>
+
+            <button class="convert-btn" id="convertBtn" disabled>
+                Convert to Excel
+            </button>
+
+            <div class="progress-area" id="progressArea">
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="status" id="status">Converting...</div>
+            </div>
+
+            <div class="preview-panel" id="previewPanel">
+                <h3 style="color: #42f8f5; margin-bottom: 15px;">Preview</h3>
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Column 1</th>
+                            <th>Column 2</th>
+                            <th>Column 3</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody">
+                        <!-- Preview data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button class="download-btn" id="downloadBtn">
+                ⬇️ Download Excel File
+            </button>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Table Detection</div>
+                <div class="feature-desc">Auto-detects tables in PDF</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📑</div>
+                <div class="feature-title">Multi-Page Support</div>
+                <div class="feature-desc">Convert all pages to sheets</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-title">High Accuracy</div>
+                <div class="feature-desc">Precise data extraction</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Fast Processing</div>
+                <div class="feature-desc">Quick conversion speed</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const convertBtn = document.getElementById('convertBtn');
+        const progressArea = document.getElementById('progressArea');
+        const progress = document.getElementById('progress');
+        const status = document.getElementById('status');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const previewPanel = document.getElementById('previewPanel');
+        const previewBody = document.getElementById('previewBody');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                
+                if (file.type !== 'application/pdf') {
+                    showError('Please select a PDF file');
+                    return;
+                }
+
+                if (file.size > 100 * 1024 * 1024) {
+                    showError('File size should be less than 100MB');
+                    return;
+                }
+
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                fileInfo.style.display = 'block';
+                convertBtn.disabled = false;
+                hideError();
+                showPreview();
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showError(message) {
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            fileInfo.style.display = 'none';
+            convertBtn.disabled = true;
+            previewPanel.style.display = 'none';
+        }
+
+        function hideError() {
+            errorMsg.style.display = 'none';
+        }
+
+        function showPreview() {
+            previewPanel.style.display = 'block';
+            previewBody.innerHTML = `
+                <tr>
+                    <td>Sample Data 1</td>
+                    <td>Sample Data 2</td>
+                    <td>Sample Data 3</td>
+                </tr>
+                <tr>
+                    <td>Sample Data 4</td>
+                    <td>Sample Data 5</td>
+                    <td>Sample Data 6</td>
+                </tr>
+            `;
+        }
+
+        convertBtn.addEventListener('click', () => {
+            convertBtn.disabled = true;
+            progressArea.style.display = 'block';
+            dropZone.classList.add('converting');
+            
+            let progressValue = 0;
+            const interval = setInterval(() => {
+                progressValue += Math.random() * 30;
+                if (progressValue > 100) progressValue = 100;
+                
+                progress.style.width = progressValue + '%';
+                
+                if (progressValue === 100) {
+                    clearInterval(interval);
+                    setTimeout(conversionComplete, 500);
+                }
+            }, 500);
+        });
+
+        function conversionComplete() {
+            status.textContent = 'Conversion Complete!';
+            status.style.color = '#00c853';
+            dropZone.classList.remove('converting');
+            dropZone.classList.add('success');
+            downloadBtn.style.display = 'block';
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            const format = document.getElementById('formatSelect').value;
+            const link = document.createElement('a');
+            link.download = fileName.textContent.replace('.pdf', '.' + format);
+            link.href = '#';
+            link.click();
+            
+            setTimeout(() => {
+                fileInfo.style.display = 'none';
+                progressArea.style.display = 'none';
+                downloadBtn.style.display = 'none';
+                previewPanel.style.display = 'none';
+                dropZone.classList.remove('success');
+                convertBtn.disabled = true;
+                progress.style.width = '0%';
+                status.textContent = 'Converting...';
+                status.style.color = '#42f8f5';
+            }, 1000);
+        });
+
+        // Settings panel event listeners
+        document.getElementById('formatSelect').addEventListener('change', updatePreview);
+        document.getElementById('detectionSelect').addEventListener('change', updatePreview);
+        document.getElementById('sheetSelect').addEventListener('change', updatePreview);
+
+        function updatePreview() {
+            // In a real application, this would update the preview based on settings
+            showPreview();
+        }
+    </script>
+</body>
+</html>

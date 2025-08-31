@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Image - FileForge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .converter-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #12151a;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(66, 248, 245, 0.3);
+            width: 90%;
+        }
+
+        .drop-zone {
+            padding: 40px;
+            margin: 20px 0;
+            border: 2px dashed #42f8f5;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone:hover {
+            background: rgba(66, 248, 245, 0.05);
+            border-color: #42f8f5;
+            box-shadow: 0 0 15px rgba(66, 248, 245, 0.2);
+        }
+
+        .drop-zone.dragover {
+            background: rgba(66, 248, 245, 0.1);
+            border-color: #42f8f5;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .editor-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(66, 248, 245, 0.05);
+            border-radius: 10px;
+            display: none;
+            position: relative;
+        }
+
+        .image-container {
+            position: relative;
+            max-width: 100%;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        #imageCanvas {
+            max-width: 100%;
+            border: 2px solid #42f8f5;
+            border-radius: 8px;
+        }
+
+        .crop-overlay {
+            position: absolute;
+            border: 2px solid #42f8f5;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            cursor: move;
+        }
+
+        .resize-handle {
+            width: 10px;
+            height: 10px;
+            background-color: #42f8f5;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .resize-handle.top-left { top: -5px; left: -5px; cursor: nw-resize; }
+        .resize-handle.top-right { top: -5px; right: -5px; cursor: ne-resize; }
+        .resize-handle.bottom-left { bottom: -5px; left: -5px; cursor: sw-resize; }
+        .resize-handle.bottom-right { bottom: -5px; right: -5px; cursor: se-resize; }
+
+        .action-btn {
+            background: transparent;
+            color: #42f8f5;
+            border: 2px solid #42f8f5;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .action-btn:hover {
+            background: #42f8f5;
+            color: #12151a;
+            box-shadow: 0 0 15px rgba(66, 248, 245, 0.5);
+        }
+
+        .crop-controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .crop-info {
+            color: #42f8f5;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <!-- 🔹 Navbar -->
+    <header class="navbar">
+        <div class="logo">⚡FileForge – All-in-One Converter</div>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#tools">Tools</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#contact">Contact</a>
+        </nav>
+        <div class="hamburger">☰</div>
+    </header>
+
+    <div class="converter-container">
+        <h1 style="color: #42f8f5; text-align: center; margin-bottom: 30px;">Crop Image</h1>
+        
+        <div class="drop-zone" id="dropZone">
+            <p>Drag & Drop your image here</p>
+            <p>or</p>
+            <button class="action-btn" onclick="document.getElementById('fileInput').click()">Choose Image</button>
+            <input type="file" id="fileInput" class="file-input" accept="image/*">
+        </div>
+
+        <div class="editor-container" id="editorContainer">
+            <div class="image-container" id="imageContainer">
+                <canvas id="imageCanvas"></canvas>
+                <div class="crop-overlay" id="cropOverlay">
+                    <div class="resize-handle top-left"></div>
+                    <div class="resize-handle top-right"></div>
+                    <div class="resize-handle bottom-left"></div>
+                    <div class="resize-handle bottom-right"></div>
+                </div>
+            </div>
+
+            <div class="crop-info">
+                <p>Drag the crop area or resize using the handles</p>
+            </div>
+
+            <div class="crop-controls">
+                <button class="action-btn" id="cropBtn">Crop & Download</button>
+                <button class="action-btn" id="resetBtn">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const editorContainer = document.getElementById('editorContainer');
+        const imageContainer = document.getElementById('imageContainer');
+        const imageCanvas = document.getElementById('imageCanvas');
+        const cropOverlay = document.getElementById('cropOverlay');
+        const cropBtn = document.getElementById('cropBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        let originalImage = null;
+        let isDragging = false;
+        let isResizing = false;
+        let currentHandle = null;
+        let startX = 0;
+        let startY = 0;
+        let cropX = 0;
+        let cropY = 0;
+        let cropWidth = 0;
+        let cropHeight = 0;
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop zone when file is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Handle dropped files
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFiles, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles({ target: { files: files } });
+        }
+
+        function handleFiles(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    originalImage = new Image();
+                    originalImage.onload = function() {
+                        setupCanvas();
+                        editorContainer.style.display = 'block';
+                    }
+                    originalImage.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function setupCanvas() {
+            // Set canvas size
+            const maxWidth = 800;
+            const scale = Math.min(1, maxWidth / originalImage.width);
+            imageCanvas.width = originalImage.width * scale;
+            imageCanvas.height = originalImage.height * scale;
+
+            // Draw image
+            const ctx = imageCanvas.getContext('2d');
+            ctx.drawImage(originalImage, 0, 0, imageCanvas.width, imageCanvas.height);
+
+            // Initialize crop area
+            cropWidth = imageCanvas.width * 0.8;
+            cropHeight = imageCanvas.height * 0.8;
+            cropX = (imageCanvas.width - cropWidth) / 2;
+            cropY = (imageCanvas.height - cropHeight) / 2;
+
+            updateCropOverlay();
+        }
+
+        function updateCropOverlay() {
+            cropOverlay.style.left = cropX + 'px';
+            cropOverlay.style.top = cropY + 'px';
+            cropOverlay.style.width = cropWidth + 'px';
+            cropOverlay.style.height = cropHeight + 'px';
+        }
+
+        // Mouse events for crop overlay
+        cropOverlay.addEventListener('mousedown', startDragging);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', stopDragging);
+
+        // Handle resize corners
+        document.querySelectorAll('.resize-handle').forEach(handle => {
+            handle.addEventListener('mousedown', e => {
+                isResizing = true;
+                currentHandle = e.target.className.split(' ')[1];
+                startX = e.clientX;
+                startY = e.clientY;
+                e.stopPropagation();
+            });
+        });
+
+        function startDragging(e) {
+            if (!isResizing) {
+                isDragging = true;
+                startX = e.clientX - cropX;
+                startY = e.clientY - cropY;
+            }
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                cropX = e.clientX - startX;
+                cropY = e.clientY - startY;
+
+                // Keep within bounds
+                cropX = Math.max(0, Math.min(cropX, imageCanvas.width - cropWidth));
+                cropY = Math.max(0, Math.min(cropY, imageCanvas.height - cropHeight));
+
+                updateCropOverlay();
+            } else if (isResizing) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                if (currentHandle.includes('right')) {
+                    cropWidth = Math.max(50, cropWidth + dx);
+                }
+                if (currentHandle.includes('bottom')) {
+                    cropHeight = Math.max(50, cropHeight + dy);
+                }
+                if (currentHandle.includes('left')) {
+                    const newWidth = Math.max(50, cropWidth - dx);
+                    cropX += cropWidth - newWidth;
+                    cropWidth = newWidth;
+                }
+                if (currentHandle.includes('top')) {
+                    const newHeight = Math.max(50, cropHeight - dy);
+                    cropY += cropHeight - newHeight;
+                    cropHeight = newHeight;
+                }
+
+                startX = e.clientX;
+                startY = e.clientY;
+                updateCropOverlay();
+            }
+        }
+
+        function stopDragging() {
+            isDragging = false;
+            isResizing = false;
+        }
+
+        cropBtn.addEventListener('click', function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = cropWidth;
+            canvas.height = cropHeight;
+            
+            ctx.drawImage(
+                imageCanvas,
+                cropX, cropY, cropWidth, cropHeight,
+                0, 0, cropWidth, cropHeight
+            );
+            
+            const link = document.createElement('a');
+            link.download = 'cropped-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        resetBtn.addEventListener('click', function() {
+            if (originalImage) {
+                setupCanvas();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator - FileForge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+    <style>
+        .converter-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #12151a;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(66, 248, 245, 0.3);
+            width: 90%;
+        }
+
+        .input-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(66, 248, 245, 0.05);
+            border-radius: 10px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: #1c222d;
+            border: 1px solid #42f8f5;
+            color: #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 15px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(66, 248, 245, 0.3);
+        }
+
+        .qr-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .option-box {
+            background: rgba(66, 248, 245, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .option-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #42f8f5;
+        }
+
+        .option-select {
+            width: 100%;
+            padding: 8px;
+            background: #1c222d;
+            border: 1px solid #42f8f5;
+            color: #e0e0e0;
+            border-radius: 5px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .qr-preview {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(66, 248, 245, 0.05);
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        #qrCode {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .action-btn {
+            background: transparent;
+            color: #42f8f5;
+            border: 2px solid #42f8f5;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .action-btn:hover {
+            background: #42f8f5;
+            color: #12151a;
+            box-shadow: 0 0 15px rgba(66, 248, 245, 0.5);
+        }
+
+        .buttons-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 🔹 Navbar -->
+    <header class="navbar">
+        <div class="logo">⚡FileForge – All-in-One Converter</div>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#tools">Tools</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#contact">Contact</a>
+        </nav>
+        <div class="hamburger">☰</div>
+    </header>
+
+    <div class="converter-container">
+        <h1 style="color: #42f8f5; text-align: center; margin-bottom: 30px;">QR Code Generator</h1>
+        
+        <div class="input-container">
+            <input type="text" id="qrInput" class="input-field" placeholder="Enter text or URL for QR code">
+        </div>
+
+        <div class="qr-options">
+            <div class="option-box">
+                <label class="option-label">Error Correction Level</label>
+                <select id="errorCorrection" class="option-select">
+                    <option value="L">Low (7%)</option>
+                    <option value="M" selected>Medium (15%)</option>
+                    <option value="Q">Quartile (25%)</option>
+                    <option value="H">High (30%)</option>
+                </select>
+            </div>
+            <div class="option-box">
+                <label class="option-label">Size</label>
+                <select id="qrSize" class="option-select">
+                    <option value="100">Small (100x100)</option>
+                    <option value="200" selected>Medium (200x200)</option>
+                    <option value="300">Large (300x300)</option>
+                    <option value="400">Extra Large (400x400)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="qr-preview" id="qrPreview">
+            <div id="qrCode"></div>
+        </div>
+
+        <div class="buttons-container">
+            <button class="action-btn" id="generateBtn">Generate QR Code</button>
+            <button class="action-btn" id="downloadBtn">Download QR Code</button>
+        </div>
+    </div>
+
+    <script>
+        const qrInput = document.getElementById('qrInput');
+        const errorCorrection = document.getElementById('errorCorrection');
+        const qrSize = document.getElementById('qrSize');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const qrPreview = document.getElementById('qrPreview');
+        const qrCode = document.getElementById('qrCode');
+
+        generateBtn.addEventListener('click', generateQR);
+        downloadBtn.addEventListener('click', downloadQR);
+
+        // Also generate QR code when pressing Enter in input field
+        qrInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') generateQR();
+        });
+
+        function generateQR() {
+            const text = qrInput.value.trim();
+            if (!text) {
+                alert('Please enter some text or URL');
+                return;
+            }
+
+            qrCode.innerHTML = ''; // Clear previous QR code
+            
+            QRCode.toCanvas(qrCode, text, {
+                width: parseInt(qrSize.value),
+                height: parseInt(qrSize.value),
+                errorCorrectionLevel: errorCorrection.value,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            }, (error) => {
+                if (error) {
+                    console.error(error);
+                    alert('Error generating QR code');
+                    return;
+                }
+                qrPreview.style.display = 'block';
+            });
+        }
+
+        function downloadQR() {
+            const canvas = qrCode.querySelector('canvas');
+            if (!canvas) {
+                alert('Please generate a QR code first');
+                return;
+            }
+
+            // Create temporary link for download
+            const link = document.createElement('a');
+            link.download = 'qr-code.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
